@@ -148,3 +148,117 @@ insert into test_null values('ddd',6);
 # 测试
 select count(*), count(c1), count(c2) from test_null;
 select sum(c2), max(c2), min(c2), avg(c2) from test_null;
+
+# 分组查询 group by
+# 统计各个分类商品的个数
+select category_id, count(*) from product group by category_id;
+
+select category_id, count(*) from product group by category_id having COUNT(*) > 1;
+
+# 分页查询
+select * from product limit 5;
+select * from product limit 0,5; # 第一页数据
+select * from product limit 5, 5; # 第二页数据
+
+# 正则表达式
+
+# ^ 在字符串开始处进行匹配
+SELECT 'abc' REGEXP '^a'; # 1
+
+# $ 在字符串末尾进行匹配
+SELECT 'abc' REGEXP 'a$'; # 0
+SELECT 'abc' REGEXP 'c$'; # 1
+
+# . 匹配任意字符
+SELECT 'abc' REGEXP '.b'; # 1
+SELECT 'abc' REGEXP '.c'; # 1
+SELECT 'abc' REGEXP 'a.'; # 1
+SELECT 'abc' REGEXP 'c.'; # 0
+
+# [...] 匹配括号内的任意单个字符
+SELECT 'abc' REGEXP '[xyz]'; # 0
+SELECT 'abc' REGEXP '[xaz]'; # 1
+
+# [^...] 注意^符合只有在[]内才是取反的意思，在别的地方都是表示开始处匹配
+SELECT 'a' REGEXP '[^abc]'; # 0
+SELECT 'x' REGEXP '[^abc]'; # 1
+SELECT 'abc' REGEXP '[^a]'; # 1
+
+# a* 匹配0个或多个a，包括空字符串。可以作为占位符使用. 有没有指定字符都可以匹配到数据
+SELECT 'stab' REGEXP '.ta*b'; # 1
+SELECT 'stb' REGEXP '.ta*b'; # 1, 这里没有a 相当于空字符，也满足sta*b
+SELECT '' REGEXP 'a*'; # 1
+
+# a+ 匹配1个或者多个a，但是不包括空字符
+SELECT 'stab' REGEXP '.ta+b'; # 1
+SELECT 'stb' REGEXP '.ta+b'; # 0 , a+ 不能包括空字符，至少1个或多个a才行
+
+# a? 匹配0个或者1个a
+SELECT 'stb' REGEXP '.ta?b'; # 1
+SELECT 'stab' REGEXP '.ta?b'; # 1
+SELECT 'staab' REGEXP '.ta?b'; # 0 , 超过了1个
+
+# a1|a2 匹配诶a1或者a2
+SELECT 'a' REGEXP 'a|b'; # 1
+SELECT 'b' REGEXP 'a|b'; # 1
+SELECT 'b' REGEXP '^(a|b)'; # 1, ^在字符串开始处进行匹配
+SELECT 'a' REGEXP '^(a|b)'; # 1
+SELECT 'c' REGEXP '^(a|b)'; # 0
+
+# a{m} 匹配m个a
+SELECT 'auuuuc' REGEXP 'au{4}c'; # 1
+SELECT 'auuuuc' REGEXP 'au{3}c';  # 0
+
+# a{m,n} 匹配m到n个a，包含m和n
+SELECT 'auuuuc' REGEXP 'au{3,5}c'; # 1
+SELECT 'auuuuc' REGEXP 'au{4,5}c'; # 1
+SELECT 'auuuuc' REGEXP 'au{5,10}c'; # 0
+
+# (abc) abc作为一个序列匹配，不用括号括起来都是用单个字符去匹配、如果要把多个字符作为一个整体去匹配就需要用到括号、所以括号适合上面的所有情况。
+SELECT 'xababy' REGEXP 'x(abab)y'; # 1
+SELECT 'xababy' REGEXP 'x(ab)*y'; # 1
+SELECT 'xababy' REGEXP 'x(ab){1,2}y'; # 1
+
+
+# 多表关系 - 外键约束
+
+DROP DATABASE IF EXISTS mydb3;
+CREATE DATABASE IF NOT EXISTS mydb3;
+USE mydb3;
+
+# 创建部门表
+DROP TABLE IF EXISTS `dept`;
+
+CREATE TABLE IF NOT EXISTS `dept`(
+    `deptno` VARCHAR(20) PRIMARY KEY  COMMENT '部门号',
+    `name` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '部门名字'
+);
+
+DROP TABLE IF EXISTS `emp`;
+CREATE TABLE IF NOT EXISTS `emp`(
+    `eid` VARCHAR(20) PRIMARY KEY COMMENT '员工编号',
+    `ename` VARCHAR(20) COMMENT '员工名字',
+    `age` INT COMMENT '员工年龄',
+    `dept_id` VARCHAR(29) COMMENT '员工所属部门',
+    CONSTRAINT `emp_fk` FOREIGN KEY (`dept_id`) REFERENCES `dept` (`deptno`)
+);
+
+-- 1、添加主表数据
+-- 注意必须先给主表添加数据
+insert into dept values('1001','研发部');
+insert into dept values('1002','销售部');
+insert into dept values('1003','财务部');
+insert into dept values('1004','人事部');
+
+-- 2、添加从表数据
+  -- 注意给从表添加数据时，外键列的值不能随便写，必须依赖主表的主键列
+insert into emp values('1','乔峰',20, '1001');
+insert into emp values('2','段誉',21, '1001');
+insert into emp values('3','虚竹',23, '1001');
+insert into emp values('4','阿紫',18, '1002');
+insert into emp values('5','扫地僧',35, '1002');
+insert into emp values('6','李秋水',33, '1003');
+insert into emp values('7','鸠摩智',50, '1003');
+# insert into emp values('8','天山童姥',60, '1005');  -- 不可以
+
+

@@ -22,8 +22,7 @@ from <表名或视图名> [别名],<表名或视图名> [别名]...
 select *| 列名 from 表 where 条件
 ```
 
-### 练习
-数据准备
+### 数据准备
 
 创建数据库和表
 
@@ -68,7 +67,7 @@ insert into product values(null,'老北京方便面',56,'c004');
 insert into product values(null,'良品铺子海带丝',17,'c004');
 insert into product values(null,'三只松鼠坚果',88, null);
 ```
-查询
+### 简单查询
 ```sql
 -- 简单查询
 select * from product;
@@ -89,7 +88,7 @@ select distinct price from product;
 select pname, price + 10 from product;
 ```
 
-运算符
+### 运算符
 
 数据库中的表结构确立后，表中的数据代表的意义就已经确定。通过MySQL运算符进行运算，就可以获取到表结构以外的另一种数据。
 
@@ -155,21 +154,6 @@ select greatest(10, 20, 30);
 
 ```
 
-#### 模糊查询
-```sql
-select * from product where pname like '%裤%';
-# 以海开头
-select * from product where pname like '海%';
-
-# 第二个字为蔻的所有商品
-select * from product where pname like '_蔻%';
-
-# 查询category_id 为 null的商品
-select * from product where category_id is null;
-
-select * from product where category_id is not null;
-
-```
 
 #### 位运算符
 ![img_7.png](img_7.png)
@@ -186,7 +170,22 @@ select ~3; # 取反
 
 ```
 
-#### 排序查询
+### 模糊查询
+```sql
+select * from product where pname like '%裤%';
+# 以海开头
+select * from product where pname like '海%';
+
+# 第二个字为蔻的所有商品
+select * from product where pname like '_蔻%';
+
+# 查询category_id 为 null的商品
+select * from product where category_id is null;
+
+select * from product where category_id is not null;
+
+```
+### 排序查询
 
 如果需要对读取的数据进行排序，我们就可以使用MySQL的`order by`字句来设定你向按哪个字段哪种方式来进行排序，再返回搜索结果。
 
@@ -212,7 +211,7 @@ select * from product order by price desc , category_id asc ;
 select distinct price from product order by price desc ;
 
 ```
-#### 聚合查询
+### 聚合查询
 之前的查询都是横向查询，它们都是根据条件一行一行的进行判断，而使用聚合函数查询是纵向查询，它对一列的值进行计算，然后返回一个单一的值；另外聚合函数会**忽略空值**
 ![img_8.png](img_8.png)
 
@@ -257,7 +256,85 @@ select count(*), count(c1), count(c2) from test_null;
 select sum(c2), max(c2), min(c2), avg(c2) from test_null;
 ```
 
-# 分组查询
+### 分组查询
+#### `group by`
+
+分组查询是指使用`group by`字句对查询信息进行分组。
+
+格式：
+```sql
+select 字段1,字段2 ... from 表名 group by 分组字段 having 分组条件;
+```
+操作
+```sql
+# 统计各个分类商品的个数
+select category_id, count(*) from product group by category_id;
+
+```
+如果要进行分组的话，则SELECT字句之后，只能出现分组的字段和统计函数，其他的字段不能出现。
+
+#### 分组之后的条件筛选-having
+- 分组之后对统计结果进行筛选的话**必须使用having, 不能使用where**
+- where 字句用来筛选FROM字句中指定的操作所产生的行
+- group by 字句用来分组 WHERE 字句的输出
+- having 字句用来从分组的结果中筛选行 
+
+格式：
+```sql
+select 字段1, 字段2 ...from 表名 group by 分组字段 having 分组条件;
+```
+操作
+```sql
+select category_id, count(*) from product group by category_id having COUNT(*) > 1;
+```
+
+### 分页查询
+分页查询在项目开发中常见，由于数据量很大，显示屏长度有限，因此对数据需要采取的分页显示方式。例如数据共有30条，每页显示5条，第一页显示1-5条，第二页显示6-10条。
+
+格式：
+```sql
+
+# 方式一
+select 字段1, 字段2, ... from 表名 limit n
+
+# 方式二
+select 字段1, 字段2, ... form 表名 limit m,n;
+
+# m: 整数、表示从第几条索引开始，计算方式（当前页-1）* 每页显示条数
+# n: 整数、表示查询多少条数据
+```
+操作：
+```sql
+select * from product limit 5;
+select * from product limit 0,5; # 第一页数据
+select * from product limit 5, 5; # 第二页数据
+```
+
+### 将一张表的数据导入到另外一张表 `INSERT INTO SELECT 和 SELECT INTO FRO`M语句
+
+将一张表的数据导入到另外一张表中，可以使用`INSERT INTO SELECT` 语句。
+
+格式：
+```sql
+insert into Table2(field1, field2,...) select value1, value2, ... from Table1;
+# 或者
+insert into Table2 select * from Table1;
+```
+要求：目标表Table2必须存在
+
+
+`SELECT INTO FROM` 语句
+
+格式：
+```sql
+SELECT value1, value2 into Table2 from Table1;
+```
+
+要求：目标表Table2不存在，因为插入时会自动创建表Table2，并将Table1中指定的字段数据复制到Table2中。
+
+
+
+
 
 
 
